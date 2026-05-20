@@ -3,7 +3,6 @@ import sys
 
 from core.logger import logger
 from bot.bot_instance import bot, dp, start_bot
-from utils.generate_slots import generateSlots
 
 from bot.handlers.commands import router as commands_router
 from bot.handlers.callbacks import router as callbacks_router
@@ -20,19 +19,8 @@ dp.include_router(booking_router)
 # ==================== MAIN ====================
 
 async def main():
+
     try:
-
-        # ==================== GENERATE SLOTS ====================
-
-        logger.info("📅 Generisanje termina...")
-
-        try:
-        await generateSlots()
-        logger.info("✅ generateSlots uspešno završen")
-    except Exception as e:
-        logger.error(f"❌ generateSlots greška: {str(e)}")
-
-        logger.info("✅ Termini generisani.")
 
         # ==================== START BOT ====================
 
