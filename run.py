@@ -26,7 +26,11 @@ async def main():
 
         logger.info("📅 Generisanje termina...")
 
+        try:
         await generateSlots()
+        logger.info("✅ generateSlots uspešno završen")
+    except Exception as e:
+        logger.error(f"❌ generateSlots greška: {str(e)}")
 
         logger.info("✅ Termini generisani.")
 
