@@ -3,7 +3,7 @@ import sys
 
 from core.logger import logger
 from bot.bot_instance import bot, dp, start_bot
-from utils.generateSlots import generateSlots
+from utils.generate_slots import generateSlots
 
 from bot.handlers.commands import router as commands_router
 from bot.handlers.callbacks import router as callbacks_router
