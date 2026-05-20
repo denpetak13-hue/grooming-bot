@@ -2,22 +2,30 @@ from datetime import datetime, timedelta
 
 from services.sheets_service import SheetsService
 
-WORKING_DAYS = [0, 1, 2, 3, 4, 5]
+# ==================== CONFIG ====================
+
+WORKING_DAYS = [0, 1, 2, 3, 4, 5]  # Pon-Sub
 
 START_HOUR = 9
 END_HOUR = 17
 
 DAYS_AHEAD = 30
 
+# ==================== GENERATOR ====================
+
 async def generateSlots():
 
     try:
+
+        print("🚀 Pokretanje generateSlots...")
 
         sheets = SheetsService()
 
         await sheets.init()
 
         sheet = sheets.sheet
+
+        # ==================== LOAD EXISTING ====================
 
         rows = sheet.get_all_records()
 
@@ -28,6 +36,8 @@ async def generateSlots():
             key = f"{row.get('Datum')}_{row.get('Vreme')}"
 
             existing_slots.add(key)
+
+        # ==================== GENERATE ====================
 
         today = datetime.now()
 
@@ -55,9 +65,10 @@ async def generateSlots():
                 if slot_key in existing_slots:
                     continue
 
-                # ADD ROW
+                # ==================== APPEND ROW ====================
 
                 sheet.append_row([
+
                     formatted_date,   # Datum
                     formatted_time,   # Vreme
                     "",               # Status
@@ -68,6 +79,7 @@ async def generateSlots():
                     "",               # WhatsAppConsent
                     "",               # ChatID
                     ""                # ReminderSent
+
                 ])
 
                 generated_count += 1
@@ -78,12 +90,12 @@ async def generateSlots():
                 )
 
         print(
-            f"🚀 Generisano ukupno "
+            f"🎉 Generisano ukupno "
             f"{generated_count} termina."
         )
 
     except Exception as e:
 
         print(
-            f"❌ Greška u generateSlots: {str(e)}"
+            f"❌ generateSlots ERROR: {str(e)}"
         )
