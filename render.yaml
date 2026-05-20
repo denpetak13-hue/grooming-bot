@@ -3,7 +3,7 @@ services:
     name: grooming-bot
     env: python
     plan: free
-    pythonVersion: "3.11"          # ← Ovo je najvažnije
+    pythonVersion: "3.11"               # ← Ovo mora biti ovde
     buildCommand: "pip install -r requirements.txt"
     startCommand: "python run.py"
     envVars:
