@@ -2,6 +2,7 @@ import asyncio
 import sys
 
 from core.logger import logger
+
 from bot.bot_instance import bot, dp, start_bot
 
 from bot.handlers.commands import router as commands_router
@@ -9,6 +10,10 @@ from bot.handlers.callbacks import router as callbacks_router
 from bot.handlers.booking import router as booking_router
 
 from core.scheduler import ReminderScheduler
+
+# ==================== SLOT GENERATOR ====================
+
+from utils.generate_slots import generateSlots
 
 # ==================== REGISTER ROUTERS ====================
 
@@ -21,6 +26,18 @@ dp.include_router(booking_router)
 async def main():
 
     try:
+
+        # ==================== GENERATE SLOTS ====================
+
+        logger.info(
+            "📅 Generisanje termina..."
+        )
+
+        await generateSlots()
+
+        logger.info(
+            "✅ Termini generisani."
+        )
 
         # ==================== START BOT ====================
 
@@ -59,7 +76,9 @@ if __name__ == "__main__":
 
     except KeyboardInterrupt:
 
-        logger.info("🛑 Bot zaustavljen ručno")
+        logger.info(
+            "🛑 Bot zaustavljen ručno"
+        )
 
     except Exception as e:
 

@@ -1,17 +1,27 @@
-from services.sheets_service import SheetsService
 from datetime import datetime, timedelta
 
-sheets = SheetsService()
+from services.sheets_service import SheetsService
+
+# ==================== CONFIG ====================
 
 WORKING_DAYS = [0, 1, 2, 3, 4, 5]  # Pon-Sub
+
 START_HOUR = 9
 END_HOUR = 17
 
+DAYS_AHEAD = 30
+
+# ==================== GENERATOR ====================
+
 async def generateSlots():
+
+    sheets = SheetsService()
 
     await sheets.init()
 
     sheet = sheets.sheet
+
+    # ==================== LOAD EXISTING ====================
 
     rows = sheet.get_all_records()
 
@@ -23,15 +33,17 @@ async def generateSlots():
 
         existing_slots.add(key)
 
+    # ==================== GENERATE ====================
+
     today = datetime.now()
 
-    # GENERATE NEXT 14 DAYS
+    generated_count = 0
 
-    for i in range(14):
+    for day_offset in range(DAYS_AHEAD):
 
-        current_day = today + timedelta(days=i)
+        current_day = today + timedelta(days=day_offset)
 
-        # SKIP SUNDAY
+        # Skip Sunday
 
         if current_day.weekday() not in WORKING_DAYS:
             continue
@@ -44,12 +56,12 @@ async def generateSlots():
 
             slot_key = f"{formatted_date}_{formatted_time}"
 
-            # SKIP DUPLICATES
+            # Skip existing
 
             if slot_key in existing_slots:
                 continue
 
-            # CREATE SLOT
+            # ==================== ADD SLOT ====================
 
             sheet.append_row([
                 formatted_date,
@@ -62,8 +74,13 @@ async def generateSlots():
                 ""
             ])
 
+            generated_count += 1
+
             print(
-                f"✅ Dodat termin: {formatted_date} {formatted_time}"
+                f"✅ Dodat termin: "
+                f"{formatted_date} {formatted_time}"
             )
 
-    print("🚀 Generisanje termina završeno.")
+    print(
+        f"🚀 Generisano {generated_count} novih termina."
+    )
