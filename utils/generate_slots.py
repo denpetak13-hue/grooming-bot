@@ -58,14 +58,16 @@ async def generateSlots():
                 # ADD ROW
 
                 sheet.append_row([
-                    formatted_date,
-                    formatted_time,
-                    "",
-                    "",
-                    "",
-                    "",
-                    "",
-                    ""
+                    formatted_date,   # Datum
+                    formatted_time,   # Vreme
+                    "",               # Status
+                    "",               # Usluga
+                    "",               # Ime
+                    "",               # Telefon
+                    "",               # Email
+                    "",               # WhatsAppConsent
+                    "",               # ChatID
+                    ""                # ReminderSent
                 ])
 
                 generated_count += 1
