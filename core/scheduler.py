@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from services.sheets_service import SheetsService
 from services.twilio_service import TwilioService
 from core.logger import logger
+from utils.generate_slots import generateSlots
 
 class ReminderScheduler:
     scheduler = None
@@ -19,13 +20,28 @@ class ReminderScheduler:
         
         cls.scheduler.add_job(
             cls.check_and_send_reminders,
-            trigger=IntervalTrigger(minutes=5),   # svakih 5 minuta za test
+            trigger=IntervalTrigger(hours=1),
             id='whatsapp_reminders',
+            replace_existing=True
+        )
+
+        cls.scheduler.add_job(
+            cls.generate_available_slots,
+            trigger=IntervalTrigger(hours=6),
+            id='generate_available_slots',
             replace_existing=True
         )
         
         cls.scheduler.start()
-        logger.info("✅ Reminder Scheduler pokrenut (provera svakih 5 minuta)")
+        logger.info("✅ Scheduler pokrenut (reminder + dopuna termina)")
+
+    @classmethod
+    async def generate_available_slots(cls):
+        try:
+            logger.info("📅 Provera i dopuna slobodnih termina...")
+            await generateSlots()
+        except Exception as e:
+            logger.error("Greška pri dopuni termina", error=str(e))
 
     @classmethod
     async def check_and_send_reminders(cls):

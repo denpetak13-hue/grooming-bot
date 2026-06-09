@@ -1,9 +1,28 @@
 import gspread
+import os
+import sys
+import time
 from google.oauth2.service_account import Credentials
 from core.config import settings
 from datetime import datetime, timedelta
 
 print("🔄 Resetujem Google Sheet sa ReminderSent kolonom...")
+
+if os.getenv("CONFIRM_RESET_SHEET") != "yes":
+    print("❌ Reset nije potvrđen. Za brisanje tabele pokrenite sa CONFIRM_RESET_SHEET=yes.")
+    sys.exit(1)
+
+# Phase 6: Show which sheet will be wiped and give the operator a chance to abort.
+print(f"")
+print(f"  PAZNJA: Brisem SVE podatke iz Sheet-a sa ID: {settings.GOOGLE_SHEET_ID}")
+print(f"  Pritisnite Ctrl+C u roku od 5 sekundi da prekinete...")
+print(f"")
+
+try:
+    time.sleep(5)
+except KeyboardInterrupt:
+    print("Operacija prekinuta.")
+    sys.exit(0)
 
 creds_dict = {
     "type": "service_account",
@@ -31,13 +50,13 @@ print("📅 Generišem termine + ReminderSent kolonu...")
 
 for i in range(14):
     current_date = start_date + timedelta(days=i)
-    if current_date.weekday() >= 5:  
+    if current_date.weekday() == 6:  
         continue
     
     date_str = current_date.strftime("%d.%m.%Y")
     
     for time in slot_times:
-        sheet.append_row([date_str, time, "", "", "", "", "", "", "", "", ""])
+        sheet.append_row([date_str, time, "slobodno", "", "", "", "", "", "", "", ""])
     
     print(f"✓ Dodato za {date_str} - 8 termina")
 

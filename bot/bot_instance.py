@@ -33,23 +33,22 @@ async def start_bot():
     logger.info("✅ Bot uspešno pokrenut i spreman za rad!")
 
 
-# ==================== GRACEFUL SHUTDOWN (Windows friendly) ====================
+# ==================== GRACEFUL SHUTDOWN ====================
+# RC-12: setup_shutdown() previously called asyncio.get_event_loop() at module
+# import time (before any event loop exists), which is deprecated since
+# Python 3.10 and raises DeprecationWarning on 3.12+.
+#
+# Cleanup is already handled by:
+#   - run.py finally: ReminderScheduler.stop()
+#   - aiogram dp.start_polling() which handles KeyboardInterrupt internally
+#
+# The shutdown() coroutine is kept as a utility in case it is needed later,
+# but it is NOT called at import time.
+
 import asyncio
-import signal
+
 
 async def shutdown():
-    logger.info("⛔ Bot se gasi...")
+    logger.info("Bot se gasi...")
     await bot.session.close()
-    logger.info("✅ Bot uspešno zaustavljen")
-
-# Za Windows
-def setup_shutdown():
-    loop = asyncio.get_event_loop()
-    for sig in (signal.SIGINT, signal.SIGTERM):
-        try:
-            loop.add_signal_handler(sig, lambda: asyncio.create_task(shutdown()))
-        except NotImplementedError:
-            # Windows fallback
-            pass
-
-setup_shutdown()
+    logger.info("Bot uspesno zaustavljen")

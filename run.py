@@ -28,16 +28,19 @@ async def main():
     try:
 
         # ==================== GENERATE SLOTS ====================
+        # Phase 4: wrap generateSlots() in its own try/except so a failure
+        # (empty sheet, bad credentials, API quota) does not prevent the bot
+        # from starting. The scheduler will retry every 6 hours automatically.
 
-        logger.info(
-            "📅 Generisanje termina..."
-        )
-
-        await generateSlots()
-
-        logger.info(
-            "✅ Termini generisani."
-        )
+        try:
+            logger.info("📅 Generisanje termina...")
+            await generateSlots()
+            logger.info("✅ Termini generisani.")
+        except Exception as slot_err:
+            logger.error(
+                "Termini nisu generisani pri startu - scheduler ce pokusati ponovo za 6h.",
+                error=str(slot_err),
+            )
 
         # ==================== START BOT ====================
 
