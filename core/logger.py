@@ -8,6 +8,9 @@ import structlog
 LOG_FORMAT = "%(message)s"
 LOG_LEVEL = logging.DEBUG
 
+# Prevent handler/processor failures from crashing the application.
+logging.raiseExceptions = False
+
 _processors = [
     structlog.processors.TimeStamper(fmt="iso"),
     structlog.processors.add_log_level,
@@ -16,14 +19,34 @@ _processors = [
 ]
 
 
+def _create_stream_handler(stream) -> logging.Handler | None:
+    if stream is None or getattr(stream, "closed", False):
+        return None
+
+    try:
+        handler = logging.StreamHandler(stream)
+        handler.setLevel(LOG_LEVEL)
+        handler.setFormatter(logging.Formatter(LOG_FORMAT))
+        return handler
+    except OSError:
+        return None
+
+
 def _build_handlers() -> tuple[list[logging.Handler], Path | None]:
     """Build stdout handler (required) and file handler (best-effort)."""
     handlers: list[logging.Handler] = []
 
-    stdout_handler = logging.StreamHandler(sys.stdout)
-    stdout_handler.setLevel(LOG_LEVEL)
-    stdout_handler.setFormatter(logging.Formatter(LOG_FORMAT))
-    handlers.append(stdout_handler)
+    stdout_handler = _create_stream_handler(sys.stdout)
+    if stdout_handler is not None:
+        handlers.append(stdout_handler)
+    else:
+        stderr_handler = _create_stream_handler(sys.stderr)
+        if stderr_handler is not None:
+            handlers.append(stderr_handler)
+            print(
+                "WARNING: stdout unavailable; logging to stderr.",
+                file=sys.stderr,
+            )
 
     log_file: Path | None = None
 
@@ -41,6 +64,9 @@ def _build_handlers() -> tuple[list[logging.Handler], Path | None]:
             f"WARNING: File logging unavailable ({exc}). Using stdout only.",
             file=sys.stderr,
         )
+
+    if not handlers:
+        handlers.append(logging.NullHandler())
 
     return handlers, log_file
 
@@ -65,10 +91,25 @@ def _configure_logging() -> Path | None:
     return log_file
 
 
+def _safe_log(method, *args, **kwargs) -> None:
+    try:
+        method(*args, **kwargs)
+    except Exception:
+        pass
+
+
 _log_file = _configure_logging()
 logger = structlog.get_logger()
 
-logger.info("Logging AKTIVIRAN", destinations=["stdout"] + (["file"] if _log_file else []))
+_safe_log(
+    logger.info,
+    "Logging AKTIVIRAN",
+    destinations=["stdout"] + (["file"] if _log_file else []),
+)
 
 if _log_file:
-    logger.info("Logovi se cuvaju u fajl", log_file=str(_log_file.resolve()))
+    _safe_log(
+        logger.info,
+        "Logovi se cuvaju u fajl",
+        log_file=str(_log_file.resolve()),
+    )
