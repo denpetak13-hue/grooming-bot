@@ -66,7 +66,8 @@ class SheetsService:
             # the tab in Google Sheets does not break the connection.
             def _connect():
                 client = gspread.authorize(credentials)
-                return client.open_by_key(settings.GOOGLE_SHEET_ID).get_worksheet_by_id(0)
+                return client.open_by_key(settings.GOOGLE_SHEET_ID).get_worksheet(0)
+
 
             self._sheet = await asyncio.to_thread(_connect)
 
